@@ -56,9 +56,9 @@ export default function ExpensesScreen() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('de-DE', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'EUR',
     }).format(amount);
   };
 
@@ -128,7 +128,7 @@ export default function ExpensesScreen() {
           
           <TextInput
             style={commonStyles.input}
-            placeholder="Amount"
+            placeholder="Amount (€)"
             value={amount}
             onChangeText={setAmount}
             keyboardType="numeric"

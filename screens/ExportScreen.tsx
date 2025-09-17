@@ -14,6 +14,13 @@ export default function ExportScreen() {
   const { entries } = useDiary();
   const [isExporting, setIsExporting] = useState(false);
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('de-DE', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(amount);
+  };
+
   const generateExpensesHTML = (includeImages: boolean = false) => {
     const total = getTotalExpenses();
     const expenseRows = expenses
@@ -23,7 +30,7 @@ export default function ExportScreen() {
           <td>${expense.date}</td>
           <td>${expense.description}</td>
           <td>${expense.category}</td>
-          <td>$${expense.amount.toFixed(2)}</td>
+          <td>${formatCurrency(expense.amount)}</td>
         </tr>
       `).join('');
 
@@ -58,7 +65,7 @@ export default function ExportScreen() {
           </table>
           
           <div class="total">
-            Total Expenses: $${total.toFixed(2)}
+            Total Expenses: ${formatCurrency(total)}
           </div>
         </body>
       </html>
@@ -105,7 +112,7 @@ export default function ExportScreen() {
           <td>${expense.date}</td>
           <td>${expense.description}</td>
           <td>${expense.category}</td>
-          <td>$${expense.amount.toFixed(2)}</td>
+          <td>${formatCurrency(expense.amount)}</td>
         </tr>
       `).join('');
 
@@ -155,7 +162,7 @@ export default function ExportScreen() {
           </table>
           
           <div class="total">
-            Total Expenses: $${total.toFixed(2)}
+            Total Expenses: ${formatCurrency(total)}
           </div>
           
           <div class="page-break">
@@ -321,7 +328,7 @@ export default function ExportScreen() {
           <View style={styles.summaryRow}>
             <Text style={commonStyles.text}>Total Amount:</Text>
             <Text style={styles.summaryValue}>
-              ${getTotalExpenses().toFixed(2)}
+              {formatCurrency(getTotalExpenses())}
             </Text>
           </View>
         </View>

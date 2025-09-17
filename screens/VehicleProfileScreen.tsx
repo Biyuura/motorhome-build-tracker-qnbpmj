@@ -165,7 +165,7 @@ export default function VehicleProfileScreen() {
           
           <View style={styles.dimensionsGrid}>
             <View style={styles.dimensionItem}>
-              <Text style={styles.fieldLabel}>Length (ft)</Text>
+              <Text style={styles.fieldLabel}>Length (m)</Text>
               {isEditing ? (
                 <TextInput
                   style={[commonStyles.input, styles.dimensionInput]}
@@ -177,13 +177,13 @@ export default function VehicleProfileScreen() {
                 />
               ) : (
                 <Text style={styles.fieldValue}>
-                  {formatDimension(profile.length, 'ft')}
+                  {formatDimension(profile.length, 'm')}
                 </Text>
               )}
             </View>
 
             <View style={styles.dimensionItem}>
-              <Text style={styles.fieldLabel}>Width (ft)</Text>
+              <Text style={styles.fieldLabel}>Width (m)</Text>
               {isEditing ? (
                 <TextInput
                   style={[commonStyles.input, styles.dimensionInput]}
@@ -195,7 +195,7 @@ export default function VehicleProfileScreen() {
                 />
               ) : (
                 <Text style={styles.fieldValue}>
-                  {formatDimension(profile.width, 'ft')}
+                  {formatDimension(profile.width, 'm')}
                 </Text>
               )}
             </View>
@@ -203,7 +203,7 @@ export default function VehicleProfileScreen() {
 
           <View style={styles.dimensionsGrid}>
             <View style={styles.dimensionItem}>
-              <Text style={styles.fieldLabel}>Height (ft)</Text>
+              <Text style={styles.fieldLabel}>Height (m)</Text>
               {isEditing ? (
                 <TextInput
                   style={[commonStyles.input, styles.dimensionInput]}
@@ -215,13 +215,13 @@ export default function VehicleProfileScreen() {
                 />
               ) : (
                 <Text style={styles.fieldValue}>
-                  {formatDimension(profile.height, 'ft')}
+                  {formatDimension(profile.height, 'm')}
                 </Text>
               )}
             </View>
 
             <View style={styles.dimensionItem}>
-              <Text style={styles.fieldLabel}>Weight (lbs)</Text>
+              <Text style={styles.fieldLabel}>Weight (kg)</Text>
               {isEditing ? (
                 <TextInput
                   style={[commonStyles.input, styles.dimensionInput]}
@@ -233,7 +233,7 @@ export default function VehicleProfileScreen() {
                 />
               ) : (
                 <Text style={styles.fieldValue}>
-                  {formatDimension(profile.weight, 'lbs')}
+                  {formatDimension(profile.weight, 'kg')}
                 </Text>
               )}
             </View>
