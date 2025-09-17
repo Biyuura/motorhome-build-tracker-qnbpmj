@@ -10,54 +10,110 @@ import ImagePicker from '../components/ImagePicker';
 import Icon from '../components/Icon';
 
 export default function DiaryScreen() {
-  const { entries, addEntry, deleteEntry } = useDiary();
+  console.log('DiaryScreen rendering...');
+  
+  const { entries, addEntry, deleteEntry, loading } = useDiary();
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [images, setImages] = useState<string[]>([]);
 
+  console.log('DiaryScreen entries count:', entries.length);
+
   const handleAddEntry = async () => {
-    if (!title || !content) {
+    console.log('Adding new diary entry...');
+    
+    if (!title.trim() || !content.trim()) {
       Alert.alert('Error', 'Please fill in both title and content.');
       return;
     }
 
-    const entry: DiaryEntry = {
-      id: Date.now().toString(),
-      title,
-      content,
-      date: new Date().toISOString().split('T')[0],
-      images,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      const now = new Date();
+      const entry: DiaryEntry = {
+        id: Date.now().toString(),
+        title: title.trim(),
+        content: content.trim(),
+        date: now.toISOString().split('T')[0], // YYYY-MM-DD format
+        images: images || [],
+        createdAt: now.toISOString(),
+      };
 
-    await addEntry(entry);
-    
-    // Reset form
-    setTitle('');
-    setContent('');
-    setImages([]);
-    setIsAddModalVisible(false);
+      console.log('Creating diary entry:', entry);
+      await addEntry(entry);
+      
+      // Reset form
+      setTitle('');
+      setContent('');
+      setImages([]);
+      setIsAddModalVisible(false);
+      
+      console.log('Diary entry added successfully');
+    } catch (error) {
+      console.log('Error adding diary entry:', error);
+      Alert.alert('Error', 'Failed to add diary entry. Please try again.');
+    }
   };
 
   const handleDeleteEntry = (entry: DiaryEntry) => {
+    console.log('Deleting diary entry:', entry.id);
+    
     Alert.alert(
       'Delete Entry',
       `Are you sure you want to delete "${entry.title}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => deleteEntry(entry.id) },
+        { 
+          text: 'Delete', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              await deleteEntry(entry.id);
+              console.log('Diary entry deleted successfully');
+            } catch (error) {
+              console.log('Error deleting diary entry:', error);
+              Alert.alert('Error', 'Failed to delete diary entry. Please try again.');
+            }
+          }
+        },
       ]
     );
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    try {
+      if (!dateString) {
+        return 'Unknown date';
+      }
+      
+      const date = new Date(dateString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.log('Invalid date string:', dateString);
+        return 'Invalid date';
+      }
+      
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } catch (error) {
+      console.log('Error formatting date:', error);
+      return 'Invalid date';
+    }
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={commonStyles.container}>
+        <View style={[commonStyles.content, commonStyles.centerContent]}>
+          <Text style={commonStyles.text}>Loading diary entries...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={commonStyles.container}>
@@ -66,7 +122,10 @@ export default function DiaryScreen() {
           <Text style={commonStyles.title}>Build Diary</Text>
           <TouchableOpacity
             style={[buttonStyles.primary, buttonStyles.small]}
-            onPress={() => setIsAddModalVisible(true)}
+            onPress={() => {
+              console.log('Opening add diary entry modal');
+              setIsAddModalVisible(true);
+            }}
           >
             <Icon name="add" size={20} color={colors.backgroundAlt} />
           </TouchableOpacity>
@@ -88,7 +147,7 @@ export default function DiaryScreen() {
                   <View style={styles.entryInfo}>
                     <Text style={styles.entryTitle}>{entry.title}</Text>
                     <Text style={commonStyles.textSecondary}>
-                      {formatDate(entry.date)}
+                      {formatDate(entry.createdAt || entry.date)}
                     </Text>
                   </View>
                   <TouchableOpacity
@@ -103,7 +162,7 @@ export default function DiaryScreen() {
                   {entry.content}
                 </Text>
                 
-                {entry.images.length > 0 && (
+                {entry.images && entry.images.length > 0 && (
                   <View style={styles.imageIndicator}>
                     <Icon name="image-outline" size={16} color={colors.textSecondary} />
                     <Text style={styles.imageCount}>
@@ -119,7 +178,10 @@ export default function DiaryScreen() {
 
       <SimpleBottomSheet
         isVisible={isAddModalVisible}
-        onClose={() => setIsAddModalVisible(false)}
+        onClose={() => {
+          console.log('Closing add diary entry modal');
+          setIsAddModalVisible(false);
+        }}
       >
         <ScrollView style={styles.modalContent}>
           <Text style={commonStyles.subtitle}>New Diary Entry</Text>
@@ -128,7 +190,10 @@ export default function DiaryScreen() {
             style={commonStyles.input}
             placeholder="Entry Title"
             value={title}
-            onChangeText={setTitle}
+            onChangeText={(text) => {
+              console.log('Title changed:', text);
+              setTitle(text);
+            }}
             placeholderTextColor={colors.textSecondary}
           />
           
@@ -136,7 +201,10 @@ export default function DiaryScreen() {
             style={[commonStyles.input, styles.contentInput]}
             placeholder="What did you work on today?"
             value={content}
-            onChangeText={setContent}
+            onChangeText={(text) => {
+              console.log('Content changed length:', text.length);
+              setContent(text);
+            }}
             multiline
             numberOfLines={6}
             textAlignVertical="top"
@@ -145,7 +213,10 @@ export default function DiaryScreen() {
           
           <ImagePicker
             images={images}
-            onImagesChange={setImages}
+            onImagesChange={(newImages) => {
+              console.log('Images changed:', newImages.length);
+              setImages(newImages);
+            }}
             maxImages={5}
             label="Progress Photos (Optional)"
           />
@@ -153,7 +224,10 @@ export default function DiaryScreen() {
           <View style={styles.modalActions}>
             <TouchableOpacity
               style={[buttonStyles.secondary, { flex: 1, marginRight: 8 }]}
-              onPress={() => setIsAddModalVisible(false)}
+              onPress={() => {
+                console.log('Canceling diary entry');
+                setIsAddModalVisible(false);
+              }}
             >
               <Text style={{ color: colors.text }}>Cancel</Text>
             </TouchableOpacity>
