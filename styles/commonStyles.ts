@@ -1,5 +1,5 @@
 
-import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 export const colors = {
   primary: '#2563eb',      // Blue
@@ -92,7 +92,13 @@ export const commonStyles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,

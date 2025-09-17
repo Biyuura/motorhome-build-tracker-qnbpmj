@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { commonStyles, colors } from '../styles/commonStyles';
-import { Category } from '../types';
 import { useCategories } from '../hooks/useCategories';
 import SimpleBottomSheet from './BottomSheet';
 import Icon from './Icon';

@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   Modal,
   Animated,
@@ -173,7 +172,13 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     minHeight: SCREEN_HEIGHT * 0.4,
     maxHeight: SCREEN_HEIGHT * 0.9,
-    boxShadow: '0px -4px 20px rgba(0, 0, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: -4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
     elevation: 10,
   },
   handle: {

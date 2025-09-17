@@ -7,7 +7,6 @@ import * as Sharing from 'expo-sharing';
 import { commonStyles, colors, buttonStyles } from '../styles/commonStyles';
 import { useExpenses } from '../hooks/useExpenses';
 import { useDiary } from '../hooks/useDiary';
-import { StorageService } from '../data/storage';
 import Icon from '../components/Icon';
 
 export default function ExportScreen() {
@@ -173,20 +172,16 @@ export default function ExportScreen() {
       setIsExporting(true);
       
       let html = '';
-      let filename = '';
       
       switch (type) {
         case 'expenses':
           html = generateExpensesHTML(includeImages);
-          filename = 'motorhome-expenses.pdf';
           break;
         case 'diary':
           html = generateDiaryHTML(includeImages);
-          filename = 'motorhome-diary.pdf';
           break;
         case 'complete':
           html = generateCompleteHTML(includeImages);
-          filename = 'motorhome-complete-report.pdf';
           break;
       }
 
@@ -199,7 +194,6 @@ export default function ExportScreen() {
         await Sharing.shareAsync(uri, {
           mimeType: 'application/pdf',
           dialogTitle: 'Export Motorhome Build Report',
-          UTI: 'com.adobe.pdf',
         });
       } else {
         Alert.alert('Success', 'PDF generated successfully!');
