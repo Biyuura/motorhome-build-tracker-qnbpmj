@@ -21,6 +21,14 @@ export default function VehicleProfileScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [profileImages, setProfileImages] = useState<string[]>([]);
 
+  // Store input values as strings to preserve decimal input
+  const [inputValues, setInputValues] = useState({
+    length: '0',
+    width: '0',
+    height: '0',
+    weight: '0',
+  });
+
   useEffect(() => {
     loadProfile();
   }, []);
@@ -31,6 +39,13 @@ export default function VehicleProfileScreen() {
       if (savedProfile) {
         setProfile(savedProfile);
         setProfileImages(savedProfile.profileImage ? [savedProfile.profileImage] : []);
+        // Update input values to show current values
+        setInputValues({
+          length: savedProfile.length > 0 ? savedProfile.length.toString() : '',
+          width: savedProfile.width > 0 ? savedProfile.width.toString() : '',
+          height: savedProfile.height > 0 ? savedProfile.height.toString() : '',
+          weight: savedProfile.weight > 0 ? savedProfile.weight.toString() : '',
+        });
       } else {
         setIsEditing(true); // Start in editing mode if no profile exists
       }
@@ -70,8 +85,22 @@ export default function VehicleProfileScreen() {
     setProfile(prev => ({ ...prev, [field]: value }));
   };
 
+  const updateDimensionField = (field: 'length' | 'width' | 'height' | 'weight', value: string) => {
+    // Update the input value immediately for display
+    setInputValues(prev => ({ ...prev, [field]: value }));
+    
+    // Parse and update the profile value
+    const numericValue = value === '' ? 0 : parseFloat(value);
+    if (!isNaN(numericValue)) {
+      updateField(field, numericValue);
+    }
+  };
+
   const formatDimension = (value: number, unit: string) => {
-    return value > 0 ? `${value} ${unit}` : 'Not set';
+    if (value <= 0) return 'Not set';
+    // Format to show up to 2 decimal places, removing trailing zeros
+    const formatted = value.toFixed(2).replace(/\.?0+$/, '');
+    return `${formatted} ${unit}`;
   };
 
   return (
@@ -169,10 +198,10 @@ export default function VehicleProfileScreen() {
               {isEditing ? (
                 <TextInput
                   style={[commonStyles.input, styles.dimensionInput]}
-                  value={profile.length.toString()}
-                  onChangeText={(value) => updateField('length', parseFloat(value) || 0)}
-                  keyboardType="numeric"
-                  placeholder="0"
+                  value={inputValues.length}
+                  onChangeText={(value) => updateDimensionField('length', value)}
+                  keyboardType="decimal-pad"
+                  placeholder="0.0"
                   placeholderTextColor={colors.textSecondary}
                 />
               ) : (
@@ -187,10 +216,10 @@ export default function VehicleProfileScreen() {
               {isEditing ? (
                 <TextInput
                   style={[commonStyles.input, styles.dimensionInput]}
-                  value={profile.width.toString()}
-                  onChangeText={(value) => updateField('width', parseFloat(value) || 0)}
-                  keyboardType="numeric"
-                  placeholder="0"
+                  value={inputValues.width}
+                  onChangeText={(value) => updateDimensionField('width', value)}
+                  keyboardType="decimal-pad"
+                  placeholder="0.0"
                   placeholderTextColor={colors.textSecondary}
                 />
               ) : (
@@ -207,10 +236,10 @@ export default function VehicleProfileScreen() {
               {isEditing ? (
                 <TextInput
                   style={[commonStyles.input, styles.dimensionInput]}
-                  value={profile.height.toString()}
-                  onChangeText={(value) => updateField('height', parseFloat(value) || 0)}
-                  keyboardType="numeric"
-                  placeholder="0"
+                  value={inputValues.height}
+                  onChangeText={(value) => updateDimensionField('height', value)}
+                  keyboardType="decimal-pad"
+                  placeholder="0.0"
                   placeholderTextColor={colors.textSecondary}
                 />
               ) : (
@@ -225,10 +254,10 @@ export default function VehicleProfileScreen() {
               {isEditing ? (
                 <TextInput
                   style={[commonStyles.input, styles.dimensionInput]}
-                  value={profile.weight.toString()}
-                  onChangeText={(value) => updateField('weight', parseFloat(value) || 0)}
-                  keyboardType="numeric"
-                  placeholder="0"
+                  value={inputValues.weight}
+                  onChangeText={(value) => updateDimensionField('weight', value)}
+                  keyboardType="decimal-pad"
+                  placeholder="0.0"
                   placeholderTextColor={colors.textSecondary}
                 />
               ) : (
