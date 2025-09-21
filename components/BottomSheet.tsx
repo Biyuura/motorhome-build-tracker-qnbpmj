@@ -8,6 +8,9 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
   PanResponder,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { colors } from '../styles/commonStyles';
 
@@ -17,8 +20,7 @@ interface SimpleBottomSheetProps {
   onClose?: () => void;
 }
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SNAP_POINTS = [0, SCREEN_HEIGHT * 0.4, SCREEN_HEIGHT * 0.8];
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function SimpleBottomSheet({
   children,
@@ -28,13 +30,24 @@ export default function SimpleBottomSheet({
   const [visible, setVisible] = useState(isVisible);
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const [currentSnapPoint, setCurrentSnapPoint] = useState(SCREEN_HEIGHT * 0.5);
+
+  // Dynamic snap points based on content
+  const SNAP_POINTS = [
+    SCREEN_HEIGHT * 0.3,  // Small
+    SCREEN_HEIGHT * 0.6,  // Medium
+    SCREEN_HEIGHT * 0.85, // Large
+  ];
 
   useEffect(() => {
     if (isVisible) {
       setVisible(true);
+      const initialSnapPoint = SNAP_POINTS[1]; // Start at medium height
+      setCurrentSnapPoint(initialSnapPoint);
+      
       Animated.parallel([
         Animated.spring(translateY, {
-          toValue: SNAP_POINTS[1],
+          toValue: SCREEN_HEIGHT - initialSnapPoint,
           useNativeDriver: true,
           tension: 100,
           friction: 8,
@@ -68,9 +81,12 @@ export default function SimpleBottomSheet({
     onClose?.();
   };
 
-  const snapToPoint = (point: number) => {
+  const snapToPoint = (snapHeight: number) => {
+    const targetY = SCREEN_HEIGHT - snapHeight;
+    setCurrentSnapPoint(snapHeight);
+    
     Animated.spring(translateY, {
-      toValue: point,
+      toValue: targetY,
       useNativeDriver: true,
       tension: 100,
       friction: 8,
@@ -78,37 +94,62 @@ export default function SimpleBottomSheet({
   };
 
   const getClosestSnapPoint = (currentY: number, velocityY: number) => {
-    const distances = SNAP_POINTS.map(point => Math.abs(point - currentY));
-    const closestIndex = distances.indexOf(Math.min(...distances));
+    const currentHeight = SCREEN_HEIGHT - currentY;
     
-    if (velocityY > 500 && closestIndex < SNAP_POINTS.length - 1) {
-      return SNAP_POINTS[closestIndex + 1];
-    } else if (velocityY < -500 && closestIndex > 0) {
-      return SNAP_POINTS[closestIndex - 1];
+    // If dragging down fast, close the modal
+    if (velocityY > 1000 && currentHeight < SNAP_POINTS[0]) {
+      return 0; // Close
     }
     
-    return SNAP_POINTS[closestIndex];
+    // If dragging up fast, go to largest snap point
+    if (velocityY < -1000) {
+      return SNAP_POINTS[SNAP_POINTS.length - 1];
+    }
+    
+    // Find closest snap point
+    let closestPoint = SNAP_POINTS[0];
+    let minDistance = Math.abs(currentHeight - SNAP_POINTS[0]);
+    
+    for (const point of SNAP_POINTS) {
+      const distance = Math.abs(currentHeight - point);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestPoint = point;
+      }
+    }
+    
+    return closestPoint;
   };
 
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        return Math.abs(gestureState.dy) > 10;
+        // Only respond to vertical gestures
+        return Math.abs(gestureState.dy) > Math.abs(gestureState.dx) && Math.abs(gestureState.dy) > 10;
+      },
+      onPanResponderGrant: () => {
+        // Stop any ongoing animations
+        translateY.stopAnimation();
       },
       onPanResponderMove: (_, gestureState) => {
-        const newY = SNAP_POINTS[1] + gestureState.dy;
-        if (newY >= SNAP_POINTS[0] && newY <= SCREEN_HEIGHT) {
-          translateY.setValue(newY);
-        }
+        const currentY = SCREEN_HEIGHT - currentSnapPoint;
+        const newY = currentY + gestureState.dy;
+        
+        // Constrain the movement
+        const minY = SCREEN_HEIGHT - SNAP_POINTS[SNAP_POINTS.length - 1];
+        const maxY = SCREEN_HEIGHT;
+        
+        const constrainedY = Math.max(minY, Math.min(maxY, newY));
+        translateY.setValue(constrainedY);
       },
       onPanResponderRelease: (_, gestureState) => {
-        const currentY = SNAP_POINTS[1] + gestureState.dy;
-        const targetY = getClosestSnapPoint(currentY, gestureState.vy);
+        const currentY = SCREEN_HEIGHT - currentSnapPoint + gestureState.dy;
+        const targetSnapHeight = getClosestSnapPoint(currentY, gestureState.vy);
         
-        if (targetY === SCREEN_HEIGHT || targetY === SNAP_POINTS[0]) {
+        if (targetSnapHeight === 0) {
           onClose?.();
         } else {
-          snapToPoint(targetY);
+          snapToPoint(targetSnapHeight);
         }
       },
     })
@@ -122,8 +163,12 @@ export default function SimpleBottomSheet({
       visible={visible}
       animationType="none"
       onRequestClose={onClose}
+      statusBarTranslucent
     >
-      <View style={styles.container}>
+      <KeyboardAvoidingView 
+        style={styles.container} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <TouchableWithoutFeedback onPress={handleBackdropPress}>
           <Animated.View
             style={[
@@ -139,17 +184,30 @@ export default function SimpleBottomSheet({
           style={[
             styles.bottomSheet,
             {
+              height: SCREEN_HEIGHT * 0.9, // Max height
               transform: [{ translateY }],
             },
           ]}
-          {...panResponder.panHandlers}
         >
-          <View style={styles.handle} />
-          <View style={styles.content}>
-            {children}
+          <View 
+            style={styles.handleContainer}
+            {...panResponder.panHandlers}
+          >
+            <View style={styles.handle} />
           </View>
+          
+          <ScrollView 
+            style={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.content}>
+              {children}
+            </View>
+          </ScrollView>
         </Animated.View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -170,8 +228,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundAlt,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    minHeight: SCREEN_HEIGHT * 0.4,
-    maxHeight: SCREEN_HEIGHT * 0.9,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -181,16 +237,22 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 10,
   },
+  handleContainer: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
   handle: {
     width: 40,
     height: 4,
     backgroundColor: colors.grey,
     borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 8,
+  },
+  scrollContent: {
+    flex: 1,
   },
   content: {
-    flex: 1,
+    paddingBottom: 40, // Extra padding at bottom for better UX
   },
 });

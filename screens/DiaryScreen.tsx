@@ -183,7 +183,7 @@ export default function DiaryScreen() {
           setIsAddModalVisible(false);
         }}
       >
-        <ScrollView style={styles.modalContent}>
+        <View style={styles.modalContent}>
           <Text style={commonStyles.subtitle}>New Diary Entry</Text>
           
           <TextInput
@@ -238,7 +238,7 @@ export default function DiaryScreen() {
               <Text style={{ color: colors.backgroundAlt }}>Save Entry</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </View>
       </SimpleBottomSheet>
     </SafeAreaView>
   );
@@ -296,7 +296,6 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     padding: 20,
-    maxHeight: 600,
   },
   contentInput: {
     height: 120,
