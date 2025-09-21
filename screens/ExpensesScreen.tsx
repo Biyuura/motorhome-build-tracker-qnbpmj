@@ -7,12 +7,14 @@ import { useExpenses } from '../hooks/useExpenses';
 import { Expense } from '../types';
 import SimpleBottomSheet from '../components/BottomSheet';
 import CategoryPicker from '../components/CategoryPicker';
+import CategoryManager from '../components/CategoryManager';
 import ImagePicker from '../components/ImagePicker';
 import Icon from '../components/Icon';
 
 export default function ExpensesScreen() {
   const { expenses, addExpense, deleteExpense, getTotalExpenses } = useExpenses();
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [isCategoryManagerVisible, setIsCategoryManagerVisible] = useState(false);
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
@@ -53,6 +55,24 @@ export default function ExpensesScreen() {
         { text: 'Delete', style: 'destructive', onPress: () => deleteExpense(expense.id) },
       ]
     );
+  };
+
+  const handleManageCategories = () => {
+    console.log('Opening category manager from expenses screen');
+    setIsAddModalVisible(false);
+    // Add a small delay to ensure the add modal closes first
+    setTimeout(() => {
+      setIsCategoryManagerVisible(true);
+    }, 100);
+  };
+
+  const handleCloseCategoryManager = () => {
+    console.log('Closing category manager');
+    setIsCategoryManagerVisible(false);
+    // Reopen the add expense modal after closing category manager
+    setTimeout(() => {
+      setIsAddModalVisible(true);
+    }, 100);
   };
 
   const formatCurrency = (amount: number) => {
@@ -119,6 +139,7 @@ export default function ExpensesScreen() {
         </ScrollView>
       </View>
 
+      {/* Add Expense Modal */}
       <SimpleBottomSheet
         isVisible={isAddModalVisible}
         onClose={() => setIsAddModalVisible(false)}
@@ -147,10 +168,7 @@ export default function ExpensesScreen() {
             <CategoryPicker
               selectedCategory={category}
               onCategorySelect={setCategory}
-              onManageCategories={() => {
-                // TODO: Navigate to category management
-                console.log('Manage categories');
-              }}
+              onManageCategories={handleManageCategories}
             />
             
             <ImagePicker
@@ -176,6 +194,16 @@ export default function ExpensesScreen() {
             </TouchableOpacity>
           </View>
         </View>
+      </SimpleBottomSheet>
+
+      {/* Category Manager Modal */}
+      <SimpleBottomSheet
+        isVisible={isCategoryManagerVisible}
+        onClose={() => setIsCategoryManagerVisible(false)}
+      >
+        <CategoryManager
+          onClose={handleCloseCategoryManager}
+        />
       </SimpleBottomSheet>
     </SafeAreaView>
   );
