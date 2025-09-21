@@ -30,26 +30,29 @@ export default function SimpleBottomSheet({
   const [visible, setVisible] = useState(isVisible);
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const [currentSnapPoint, setCurrentSnapPoint] = useState(SCREEN_HEIGHT * 0.5);
+  const [currentSnapPoint, setCurrentSnapPoint] = useState(SCREEN_HEIGHT * 0.7);
+  const [isDragging, setIsDragging] = useState(false);
 
-  // Dynamic snap points based on content
+  // Dynamic snap points based on content and screen size
   const SNAP_POINTS = [
-    SCREEN_HEIGHT * 0.3,  // Small
-    SCREEN_HEIGHT * 0.6,  // Medium
-    SCREEN_HEIGHT * 0.85, // Large
+    SCREEN_HEIGHT * 0.4,  // Small - 40% of screen
+    SCREEN_HEIGHT * 0.7,  // Medium - 70% of screen  
+    SCREEN_HEIGHT * 0.9,  // Large - 90% of screen
   ];
+
+  const CLOSE_THRESHOLD = SCREEN_HEIGHT * 0.2; // Close if dragged below 20% of screen
 
   useEffect(() => {
     if (isVisible) {
       setVisible(true);
-      const initialSnapPoint = SNAP_POINTS[1]; // Start at medium height
+      const initialSnapPoint = SNAP_POINTS[1]; // Start at medium height (70%)
       setCurrentSnapPoint(initialSnapPoint);
       
       Animated.parallel([
         Animated.spring(translateY, {
           toValue: SCREEN_HEIGHT - initialSnapPoint,
           useNativeDriver: true,
-          tension: 100,
+          tension: 80,
           friction: 8,
         }),
         Animated.timing(backdropOpacity, {
@@ -63,7 +66,7 @@ export default function SimpleBottomSheet({
         Animated.spring(translateY, {
           toValue: SCREEN_HEIGHT,
           useNativeDriver: true,
-          tension: 100,
+          tension: 80,
           friction: 8,
         }),
         Animated.timing(backdropOpacity, {
@@ -78,7 +81,9 @@ export default function SimpleBottomSheet({
   }, [isVisible, translateY, backdropOpacity]);
 
   const handleBackdropPress = () => {
-    onClose?.();
+    if (!isDragging) {
+      onClose?.();
+    }
   };
 
   const snapToPoint = (snapHeight: number) => {
@@ -88,7 +93,7 @@ export default function SimpleBottomSheet({
     Animated.spring(translateY, {
       toValue: targetY,
       useNativeDriver: true,
-      tension: 100,
+      tension: 80,
       friction: 8,
     }).start();
   };
@@ -96,13 +101,13 @@ export default function SimpleBottomSheet({
   const getClosestSnapPoint = (currentY: number, velocityY: number) => {
     const currentHeight = SCREEN_HEIGHT - currentY;
     
-    // If dragging down fast, close the modal
-    if (velocityY > 1000 && currentHeight < SNAP_POINTS[0]) {
+    // If dragging down fast or below close threshold, close the modal
+    if (velocityY > 800 || currentHeight < CLOSE_THRESHOLD) {
       return 0; // Close
     }
     
     // If dragging up fast, go to largest snap point
-    if (velocityY < -1000) {
+    if (velocityY < -800) {
       return SNAP_POINTS[SNAP_POINTS.length - 1];
     }
     
@@ -124,10 +129,13 @@ export default function SimpleBottomSheet({
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only respond to vertical gestures
-        return Math.abs(gestureState.dy) > Math.abs(gestureState.dx) && Math.abs(gestureState.dy) > 10;
+        // Only respond to vertical gestures that are significant enough
+        const isVerticalGesture = Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
+        const isSignificantMovement = Math.abs(gestureState.dy) > 8;
+        return isVerticalGesture && isSignificantMovement;
       },
       onPanResponderGrant: () => {
+        setIsDragging(true);
         // Stop any ongoing animations
         translateY.stopAnimation();
       },
@@ -135,14 +143,15 @@ export default function SimpleBottomSheet({
         const currentY = SCREEN_HEIGHT - currentSnapPoint;
         const newY = currentY + gestureState.dy;
         
-        // Constrain the movement
-        const minY = SCREEN_HEIGHT - SNAP_POINTS[SNAP_POINTS.length - 1];
-        const maxY = SCREEN_HEIGHT;
+        // Allow some overscroll at the top for better UX
+        const minY = SCREEN_HEIGHT - SNAP_POINTS[SNAP_POINTS.length - 1] - 50;
+        const maxY = SCREEN_HEIGHT + 50; // Allow some overscroll at bottom
         
         const constrainedY = Math.max(minY, Math.min(maxY, newY));
         translateY.setValue(constrainedY);
       },
       onPanResponderRelease: (_, gestureState) => {
+        setIsDragging(false);
         const currentY = SCREEN_HEIGHT - currentSnapPoint + gestureState.dy;
         const targetSnapHeight = getClosestSnapPoint(currentY, gestureState.vy);
         
@@ -168,6 +177,7 @@ export default function SimpleBottomSheet({
       <KeyboardAvoidingView 
         style={styles.container} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <TouchableWithoutFeedback onPress={handleBackdropPress}>
           <Animated.View
@@ -184,11 +194,12 @@ export default function SimpleBottomSheet({
           style={[
             styles.bottomSheet,
             {
-              height: SCREEN_HEIGHT * 0.9, // Max height
+              height: SCREEN_HEIGHT * 0.95, // Allow almost full screen height
               transform: [{ translateY }],
             },
           ]}
         >
+          {/* Draggable handle area */}
           <View 
             style={styles.handleContainer}
             {...panResponder.panHandlers}
@@ -196,11 +207,14 @@ export default function SimpleBottomSheet({
             <View style={styles.handle} />
           </View>
           
+          {/* Scrollable content */}
           <ScrollView 
             style={styles.scrollContent}
+            contentContainerStyle={styles.scrollContentContainer}
             showsVerticalScrollIndicator={false}
-            bounces={false}
+            bounces={true}
             keyboardShouldPersistTaps="handled"
+            nestedScrollEnabled={true}
           >
             <View style={styles.content}>
               {children}
@@ -233,26 +247,33 @@ const styles = StyleSheet.create({
       width: 0,
       height: -4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 10,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 15,
   },
   handleContainer: {
-    paddingVertical: 12,
+    paddingVertical: 16,
     alignItems: 'center',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    backgroundColor: colors.backgroundAlt,
+    zIndex: 1,
   },
   handle: {
-    width: 40,
-    height: 4,
+    width: 50,
+    height: 5,
     backgroundColor: colors.grey,
-    borderRadius: 2,
+    borderRadius: 3,
+    opacity: 0.6,
   },
   scrollContent: {
     flex: 1,
   },
+  scrollContentContainer: {
+    flexGrow: 1,
+  },
   content: {
-    paddingBottom: 40, // Extra padding at bottom for better UX
+    paddingBottom: 60, // Extra padding at bottom to ensure buttons are reachable
+    minHeight: 400, // Minimum height to ensure content is accessible
   },
 });

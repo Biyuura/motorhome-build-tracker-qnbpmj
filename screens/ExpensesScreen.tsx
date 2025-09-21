@@ -124,53 +124,55 @@ export default function ExpensesScreen() {
         onClose={() => setIsAddModalVisible(false)}
       >
         <View style={styles.modalContent}>
-          <Text style={commonStyles.subtitle}>Add Expense</Text>
+          <Text style={[commonStyles.subtitle, styles.modalTitle]}>Add Expense</Text>
           
-          <TextInput
-            style={commonStyles.input}
-            placeholder="Amount (€)"
-            value={amount}
-            onChangeText={setAmount}
-            keyboardType="numeric"
-            placeholderTextColor={colors.textSecondary}
-          />
-          
-          <TextInput
-            style={commonStyles.input}
-            placeholder="Description"
-            value={description}
-            onChangeText={setDescription}
-            placeholderTextColor={colors.textSecondary}
-          />
-          
-          <CategoryPicker
-            selectedCategory={category}
-            onCategorySelect={setCategory}
-            onManageCategories={() => {
-              // TODO: Navigate to category management
-              console.log('Manage categories');
-            }}
-          />
-          
-          <ImagePicker
-            images={receiptImages}
-            onImagesChange={setReceiptImages}
-            maxImages={1}
-            label="Receipt Photo (Optional)"
-          />
+          <View style={styles.formSection}>
+            <TextInput
+              style={commonStyles.input}
+              placeholder="Amount (€)"
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="numeric"
+              placeholderTextColor={colors.textSecondary}
+            />
+            
+            <TextInput
+              style={commonStyles.input}
+              placeholder="Description"
+              value={description}
+              onChangeText={setDescription}
+              placeholderTextColor={colors.textSecondary}
+            />
+            
+            <CategoryPicker
+              selectedCategory={category}
+              onCategorySelect={setCategory}
+              onManageCategories={() => {
+                // TODO: Navigate to category management
+                console.log('Manage categories');
+              }}
+            />
+            
+            <ImagePicker
+              images={receiptImages}
+              onImagesChange={setReceiptImages}
+              maxImages={1}
+              label="Receipt Photo (Optional)"
+            />
+          </View>
           
           <View style={styles.modalActions}>
             <TouchableOpacity
-              style={[buttonStyles.secondary, { flex: 1, marginRight: 8 }]}
+              style={[buttonStyles.secondary, styles.actionButton]}
               onPress={() => setIsAddModalVisible(false)}
             >
-              <Text style={{ color: colors.text }}>Cancel</Text>
+              <Text style={[buttonStyles.secondaryText, { color: colors.text }]}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[buttonStyles.primary, { flex: 1, marginLeft: 8 }]}
+              style={[buttonStyles.primary, styles.actionButton]}
               onPress={handleAddExpense}
             >
-              <Text style={{ color: colors.backgroundAlt }}>Add Expense</Text>
+              <Text style={[buttonStyles.primaryText, { color: colors.backgroundAlt }]}>Add Expense</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -237,10 +239,28 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalContent: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 20,
+  },
+  modalTitle: {
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  formSection: {
+    marginBottom: 30,
   },
   modalActions: {
     flexDirection: 'row',
-    marginTop: 20,
+    gap: 12,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  actionButton: {
+    flex: 1,
+    minHeight: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

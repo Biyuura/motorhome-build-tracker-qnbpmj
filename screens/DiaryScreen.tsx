@@ -184,58 +184,60 @@ export default function DiaryScreen() {
         }}
       >
         <View style={styles.modalContent}>
-          <Text style={commonStyles.subtitle}>New Diary Entry</Text>
+          <Text style={[commonStyles.subtitle, styles.modalTitle]}>New Diary Entry</Text>
           
-          <TextInput
-            style={commonStyles.input}
-            placeholder="Entry Title"
-            value={title}
-            onChangeText={(text) => {
-              console.log('Title changed:', text);
-              setTitle(text);
-            }}
-            placeholderTextColor={colors.textSecondary}
-          />
-          
-          <TextInput
-            style={[commonStyles.input, styles.contentInput]}
-            placeholder="What did you work on today?"
-            value={content}
-            onChangeText={(text) => {
-              console.log('Content changed length:', text.length);
-              setContent(text);
-            }}
-            multiline
-            numberOfLines={6}
-            textAlignVertical="top"
-            placeholderTextColor={colors.textSecondary}
-          />
-          
-          <ImagePicker
-            images={images}
-            onImagesChange={(newImages) => {
-              console.log('Images changed:', newImages.length);
-              setImages(newImages);
-            }}
-            maxImages={5}
-            label="Progress Photos (Optional)"
-          />
+          <View style={styles.formSection}>
+            <TextInput
+              style={commonStyles.input}
+              placeholder="Entry Title"
+              value={title}
+              onChangeText={(text) => {
+                console.log('Title changed:', text);
+                setTitle(text);
+              }}
+              placeholderTextColor={colors.textSecondary}
+            />
+            
+            <TextInput
+              style={[commonStyles.input, styles.contentInput]}
+              placeholder="What did you work on today?"
+              value={content}
+              onChangeText={(text) => {
+                console.log('Content changed length:', text.length);
+                setContent(text);
+              }}
+              multiline
+              numberOfLines={6}
+              textAlignVertical="top"
+              placeholderTextColor={colors.textSecondary}
+            />
+            
+            <ImagePicker
+              images={images}
+              onImagesChange={(newImages) => {
+                console.log('Images changed:', newImages.length);
+                setImages(newImages);
+              }}
+              maxImages={5}
+              label="Progress Photos (Optional)"
+            />
+          </View>
           
           <View style={styles.modalActions}>
             <TouchableOpacity
-              style={[buttonStyles.secondary, { flex: 1, marginRight: 8 }]}
+              style={[buttonStyles.secondary, styles.actionButton]}
               onPress={() => {
                 console.log('Canceling diary entry');
                 setIsAddModalVisible(false);
               }}
             >
-              <Text style={{ color: colors.text }}>Cancel</Text>
+              <Text style={[buttonStyles.secondaryText, { color: colors.text }]}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[buttonStyles.primary, { flex: 1, marginLeft: 8 }]}
+              style={[buttonStyles.primary, styles.actionButton]}
               onPress={handleAddEntry}
             >
-              <Text style={{ color: colors.backgroundAlt }}>Save Entry</Text>
+              <Text style={[buttonStyles.primaryText, { color: colors.backgroundAlt }]}>Save Entry</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -295,7 +297,16 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalContent: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 20,
+  },
+  modalTitle: {
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  formSection: {
+    marginBottom: 30,
   },
   contentInput: {
     height: 120,
@@ -303,6 +314,15 @@ const styles = StyleSheet.create({
   },
   modalActions: {
     flexDirection: 'row',
-    marginTop: 20,
+    gap: 12,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  actionButton: {
+    flex: 1,
+    minHeight: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

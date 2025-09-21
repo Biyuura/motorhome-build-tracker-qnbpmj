@@ -41,6 +41,16 @@ export const buttonStyles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 6,
   },
+  primaryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.backgroundAlt,
+  },
+  secondaryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+  },
 });
 
 export const commonStyles = StyleSheet.create({
