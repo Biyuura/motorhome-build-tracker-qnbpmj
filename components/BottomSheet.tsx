@@ -78,7 +78,7 @@ export default function SimpleBottomSheet({
         setVisible(false);
       });
     }
-  }, [isVisible, translateY, backdropOpacity]);
+  }, [isVisible, translateY, backdropOpacity, SNAP_POINTS]);
 
   const handleBackdropPress = () => {
     if (!isDragging) {
