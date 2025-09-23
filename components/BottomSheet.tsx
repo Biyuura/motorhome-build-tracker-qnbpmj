@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -33,12 +33,12 @@ export default function SimpleBottomSheet({
   const [currentSnapPoint, setCurrentSnapPoint] = useState(SCREEN_HEIGHT * 0.7);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Dynamic snap points based on content and screen size
-  const SNAP_POINTS = [
+  // Dynamic snap points based on content and screen size - wrapped in useMemo to prevent re-creation
+  const SNAP_POINTS = useMemo(() => [
     SCREEN_HEIGHT * 0.4,  // Small - 40% of screen
     SCREEN_HEIGHT * 0.7,  // Medium - 70% of screen  
     SCREEN_HEIGHT * 0.9,  // Large - 90% of screen
-  ];
+  ], [SCREEN_HEIGHT]);
 
   const CLOSE_THRESHOLD = SCREEN_HEIGHT * 0.2; // Close if dragged below 20% of screen
 
