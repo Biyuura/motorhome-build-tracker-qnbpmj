@@ -26,7 +26,7 @@ export default function ExportScreen() {
     try {
       console.log('Converting image to base64:', imageUri);
       const base64 = await FileSystem.readAsStringAsync(imageUri, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: 'base64',
       });
       
       // Determine the image type from the URI

@@ -38,7 +38,7 @@ export default function SimpleBottomSheet({
     SCREEN_HEIGHT * 0.4,  // Small - 40% of screen
     SCREEN_HEIGHT * 0.7,  // Medium - 70% of screen  
     SCREEN_HEIGHT * 0.9,  // Large - 90% of screen
-  ], [SCREEN_HEIGHT]);
+  ], []); // Removed SCREEN_HEIGHT from dependency array as it's a constant
 
   const CLOSE_THRESHOLD = SCREEN_HEIGHT * 0.2; // Close if dragged below 20% of screen
 
